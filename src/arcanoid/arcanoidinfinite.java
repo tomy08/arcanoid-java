@@ -38,7 +38,6 @@ public class arcanoidinfinite extends JFrame {
 
 	    add(new GamePanel()); // nuestro panel de juego
 
-
 	}
 
 }

@@ -1,6 +1,7 @@
 package arcanoid;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -11,6 +12,8 @@ class GamePanel extends JPanel {
 
     private java.util.List<Brick> bricks = new java.util.ArrayList<>();
     private int score = 0;
+    private int record = 0;
+    private int lives = 3;
 
     private int paddleX, paddleY, paddleWidth, paddleHeight;
     private double paddleSpeed;
@@ -151,11 +154,18 @@ class GamePanel extends JPanel {
 
             // si la pelota cae
             if (ballY > getHeight()) {
-                started = false;
-                ballX = paddleX + (paddleWidth - ballSize) / 2;
-                ballY = paddleY - ballSize - 2;
-                ballDX = ballSpeed;
-                ballDY = -ballSpeed;
+            	 lives--;
+            	 if (lives <= 0) {
+            	     if (score > record) record = score;
+            	     score = 0;
+            	     lives = 3;
+            	     generateLevel();
+            	  }
+            	  started = false;
+            	  ballX = paddleX + (paddleWidth - ballSize) / 2;
+            	  ballY = paddleY - ballSize - 2;
+            	  ballDX = ballSpeed;
+            	  ballDY = -ballSpeed;
             }
         }
 
@@ -185,8 +195,25 @@ class GamePanel extends JPanel {
             }
         }
 
-        // puntaje
+        // puntaje, vidas, record
+        g.setFont(new Font("Arial", Font.BOLD, 24)); // fuente grande y negrita
+        g.setColor(Color.BLACK);
+
+        // sombra para el texto (para que resalte sobre el fondo)
+        int y = 30;
+        int x = 20;
+        String txtPuntaje = "Puntaje: " + score;
+        String txtVidas   = "Vidas: " + lives;
+        String txtRecord  = "Record: " + record;
+
+        // dibuja texto blanco encima
         g.setColor(Color.WHITE);
-        g.drawString("Puntaje: " + score, 10, 20);
+        x = 20;
+        g.drawString(txtPuntaje, x, y);
+        x += g.getFontMetrics().stringWidth(txtPuntaje) + 40;
+        g.drawString(txtVidas, x, y);
+        x += g.getFontMetrics().stringWidth(txtVidas) + 40;
+        g.drawString(txtRecord, x, y);
+        
     }
 }
