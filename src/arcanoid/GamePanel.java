@@ -116,11 +116,15 @@ class GamePanel extends JPanel {
 
             // rebote con paddle
             if (ballY + ballSize >= paddleY &&
-                ballX + ballSize >= paddleX &&
-                ballX <= paddleX + paddleWidth) {
-                ballDY = -ballDY;
-                double hitPos = (ballX + ballSize / 2.0) - (paddleX + paddleWidth / 2.0);
-                ballDX = hitPos * 0.15; 
+            	    ballX + ballSize >= paddleX &&
+            	    ballX <= paddleX + paddleWidth) {
+
+            	    double rel = ((ballX + ballSize / 2.0) - (paddleX + paddleWidth / 2.0)) / (paddleWidth / 2.0);
+            	    double ang = rel * Math.toRadians(60);
+            	    double spd = Math.sqrt(ballDX * ballDX + ballDY * ballDY);
+
+            	    ballDX = spd * Math.sin(ang);
+            	    ballDY = -spd * Math.cos(ang);
             }
 
             // colision con ladrillos
