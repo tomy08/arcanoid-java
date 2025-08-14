@@ -5,6 +5,14 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Scanner;
+
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.JPanel;
 
 class GamePanel extends JPanel {
@@ -14,6 +22,9 @@ class GamePanel extends JPanel {
     private int score = 0;
     private int record = 0;
     private int lives = 3;
+    
+    private File recordFile = new File("record.txt");
+
 
     private int paddleX, paddleY, paddleWidth, paddleHeight;
     private double paddleSpeed;
@@ -25,11 +36,46 @@ class GamePanel extends JPanel {
     private boolean rightPressed = false;
     private boolean started = false;
     private boolean initialized = false;
+    
+    private void guardarRecord() {
+        try (FileWriter fw = new FileWriter(recordFile)) {
+            fw.write(String.valueOf(record));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void cargarRecord() {
+        if (recordFile.exists()) {
+            try (Scanner sc = new Scanner(recordFile)) {
+                if (sc.hasNextInt()) record = sc.nextInt();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void playSound(String resourcePath) {
+        try {
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(
+                getClass().getResource(resourcePath)
+            );
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioIn);
+            clip.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
 
     @Override
     public void addNotify() {
         super.addNotify();
-  
+        cargarRecord();
+
     }
 
     private void initGame() {
@@ -114,14 +160,21 @@ class GamePanel extends JPanel {
             ballY += ballDY;
 
             // rebote en paredes
-            if (ballX <= 0 || ballX + ballSize >= getWidth()) ballDX = -ballDX;
-            if (ballY <= 0) ballDY = -ballDY;
+            if (ballX <= 0 || ballX + ballSize >= getWidth()) {
+            	playSound("/arcanoid/sounds/rebote.wav");
+            	ballDX = -ballDX;
+            }
+            if (ballY <= 0) {
+            	playSound("/arcanoid/sounds/rebote.wav");
+            	ballDY = -ballDY;
+            }
 
             // rebote con paddle
             if (ballY + ballSize >= paddleY &&
             	    ballX + ballSize >= paddleX &&
             	    ballX <= paddleX + paddleWidth) {
 
+            		playSound("/arcanoid/sounds/rebote.wav");
             	    double rel = ((ballX + ballSize / 2.0) - (paddleX + paddleWidth / 2.0)) / (paddleWidth / 2.0);
             	    double ang = rel * Math.toRadians(60);
             	    double spd = Math.sqrt(ballDX * ballDX + ballDY * ballDY);
@@ -139,6 +192,8 @@ class GamePanel extends JPanel {
                     ballY < brick.y + brick.height) {
 
                     brick.destroyed = true;
+                    playSound("/arcanoid/sounds/ladrillo.wav");
+
                     ballDY = -ballDY;
                     score += 10;
                     break;
@@ -154,11 +209,18 @@ class GamePanel extends JPanel {
 
             // si la pelota cae
             if (ballY > getHeight()) {
+            	
             	 lives--;
             	 if (lives <= 0) {
-            	     if (score > record) record = score;
+            		 playSound("/arcanoid/sounds/game-over.wav");
+            	     if (score > record) {
+            	    	 record = score;
+            	    	 guardarRecord();
+            	     }
             	     score = 0;
             	     lives = 3;
+            	     
+            	     
             	     generateLevel();
             	  }
             	  started = false;
