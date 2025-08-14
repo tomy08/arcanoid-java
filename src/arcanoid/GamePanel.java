@@ -2,7 +2,9 @@ package arcanoid;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.GradientPaint;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -247,19 +249,74 @@ class GamePanel extends JPanel {
         if (!initialized && getWidth() > 0 && getHeight() > 0) {
             initGame();
         }
+        
+        Graphics2D g2 = (Graphics2D) g;
+        
+        // Fondo
+        GradientPaint bgGradient = new GradientPaint(
+            0, 0, Color.BLACK, 
+            0, getHeight(), Color.DARK_GRAY
+        );
+        g2.setPaint(bgGradient);
+        g2.fillRect(0, 0, getWidth(), getHeight());
+
 
         // paddle
-        g.setColor(Color.WHITE);
-        g.fillRect(paddleX, paddleY, paddleWidth, paddleHeight);
+     
+        GradientPaint paddleGradient = new GradientPaint(
+            paddleX, paddleY, Color.BLUE.brighter(),
+            paddleX + paddleWidth, paddleY + paddleHeight, Color.BLUE.darker()
+        );
+        g2.setPaint(paddleGradient);
+        g2.fillRect(paddleX, paddleY, paddleWidth, paddleHeight);
+
+        // borde oscuro para destacar
+        g2.setColor(Color.DARK_GRAY);
+        g2.drawRect(paddleX, paddleY, paddleWidth, paddleHeight);
+
+        // highlight arriba
+        g2.setColor(new Color(255,255,255,80));
+        g2.fillRect(paddleX + 2, paddleY + 2, paddleWidth - 4, paddleHeight/3);
+
 
         // pelota
-        g.fillOval(ballX, ballY, ballSize, ballSize);
+     
+
+        // degradé circular para la pelota
+        GradientPaint ballGradient = new GradientPaint(
+         ballX, ballY, Color.WHITE.brighter(),
+         ballX + ballSize, ballY + ballSize, Color.LIGHT_GRAY.darker()
+        );
+        g2.setPaint(ballGradient);
+        g2.fillOval(ballX, ballY, ballSize, ballSize);
+
+       
+        g2.setColor(Color.GRAY);
+        g2.drawOval(ballX, ballY, ballSize, ballSize);
+
 
         // ladrillos
         g.setColor(Color.RED);
         for (Brick brick : bricks) {
             if (!brick.destroyed) {
-                g.fillRect(brick.x, brick.y, brick.width, brick.height);
+            	
+            	GradientPaint gradient = new GradientPaint(brick.x, brick.y, Color.RED.brighter(),
+            	                                           brick.x + brick.width, brick.y + brick.height, Color.RED.darker());
+            	g2.setPaint(gradient);
+            	g2.fillRect(brick.x, brick.y, brick.width, brick.height);
+            	
+            	g.setColor(Color.DARK_GRAY);
+            	g.drawRect(brick.x, brick.y, brick.width, brick.height);
+
+            	g.setColor(new Color(255, 255, 255, 80)); // blanco semitransparente
+            	g.fillRect(brick.x + 2, brick.y + 2, brick.width/4, brick.height/4);
+
+            	g.setColor(new Color(200, 0, 0, 50));
+            	for(int i = brick.x; i < brick.x + brick.width; i += 4){
+            	    g.drawLine(i, brick.y, i, brick.y + brick.height);
+            	}
+
+            	
             }
         }
 

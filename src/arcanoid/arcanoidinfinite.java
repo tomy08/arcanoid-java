@@ -37,6 +37,8 @@ public class arcanoidinfinite extends JFrame {
 	    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 	    add(new GamePanel()); // nuestro panel de juego
+	    
+	    
 
 	}
 
