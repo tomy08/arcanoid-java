@@ -31,11 +31,13 @@ public class arcanoidinfinite extends JFrame {
 	 * Create the frame.
 	 */
 	public arcanoidinfinite() {
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 800, 600);
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		setContentPane(contentPane);
+	    setTitle("Arcanoid Infinito");
+	    setUndecorated(true);
+	    setExtendedState(JFrame.MAXIMIZED_BOTH); 
+	    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+	    add(new GamePanel()); // nuestro panel de juego
+
 
 	}
 
