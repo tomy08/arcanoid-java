@@ -1,10 +1,10 @@
 package arcanoid;
 
-public class Brick {
+public class Brick  {
     int x, y, width, height;
     boolean destroyed;
 
-    Brick(int x, int y, int width, int height) {
+    public Brick(int x, int y, int width, int height) {
         this.x = x;
         this.y = y;
         this.width = width;

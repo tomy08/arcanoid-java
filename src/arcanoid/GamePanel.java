@@ -4,191 +4,176 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-
 import javax.swing.JPanel;
 
 class GamePanel extends JPanel {
-	private static final long serialVersionUID = 1L;
-	
-	private java.util.List<Brick> bricks = new java.util.ArrayList<>();
-	private int score = 0;
+    private static final long serialVersionUID = 1L;
 
-	
-	private int paddleX, paddleY, paddleWidth, paddleHeight;
-	
-	private int ballX, ballY, ballSize;
-	private double ballDX = 4; // velocidad horizontal
-	private double ballDY = -4; // velocidad vertical
+    private java.util.List<Brick> bricks = new java.util.ArrayList<>();
+    private int score = 0;
 
-	
-	private boolean leftPressed = false;
-	private boolean rightPressed = false;
-	private boolean started = false;
-	
-	private boolean initialized = false;
-	// Se inicializan las variables de paddle y de la pelota en addNotify(porque no estan disponibles en el constructor)
-	@Override
-	public void addNotify() {
-	    super.addNotify();
-	    int panelWidth = getWidth();
-	    int panelHeight = getHeight();
+    private int paddleX, paddleY, paddleWidth, paddleHeight;
+    private double paddleSpeed;
+    private double ballSpeed;
+    private int ballX, ballY, ballSize;
+    private double ballDX, ballDY;
 
-	    // Paleta centrada horizontalmente, cerca del borde inferior
-	    paddleWidth = 100;
-	    paddleHeight = 10;
-	    paddleX = (panelWidth - paddleWidth) / 2;
-	    paddleY = panelHeight - paddleHeight - 50;
+    private boolean leftPressed = false;
+    private boolean rightPressed = false;
+    private boolean started = false;
+    private boolean initialized = false;
 
-	    // Pelota centrada sobre la paleta
-	    ballSize = 10;
-	    ballX = paddleX + (paddleWidth - ballSize) / 2;
-	    ballY = paddleY - ballSize - 2;
-	}
+    @Override
+    public void addNotify() {
+        super.addNotify();
+  
+    }
 
-	
-	private void generateLevel() {
-	    bricks.clear();
-	    int brickRows = 5;
-	    int brickCols = getWidth() / 60; // ladrillos de 50px con 10px de gap
-	    int brickWidth = (getWidth() - (brickCols + 1) * 10) / brickCols;
-	    int brickHeight = 20;
+    private void initGame() {
+        int panelWidth = getWidth();
+        int panelHeight = getHeight();
 
-	    for (int row = 0; row < brickRows; row++) {
-	        for (int col = 0; col < brickCols; col++) {
-	            int x = 10 + col * (brickWidth + 10);
-	            int y = 50 + row * (brickHeight + 10);
-	            bricks.add(new Brick(x, y, brickWidth, brickHeight));
-	        }
-	    }
-	}
+        // paddle
+        paddleWidth = panelWidth / 8;
+        paddleHeight = panelHeight / 40;
+        paddleX = (panelWidth - paddleWidth) / 2;
+        paddleY = panelHeight - paddleHeight - panelHeight / 20;
 
-	public GamePanel() {
-        setBackground(Color.BLACK); 
-        setFocusable(true);  
-        
+        // ball
+        ballSize = panelWidth / 60;
+        ballX = paddleX + (paddleWidth - ballSize) / 2;
+        ballY = paddleY - ballSize - 2;
+
+        // velocidades proporcionales
+        paddleSpeed = panelWidth / 80.0; 
+        ballSpeed = panelWidth / 150.0; 
+        ballDX = ballSpeed;
+        ballDY = -ballSpeed;
+
+        generateLevel();
+        initialized = true;
+    }
+
+    private void generateLevel() {
+        bricks.clear();
+        int brickRows = 5;
+        int brickCols = Math.max(5, getWidth() / 100);
+        int brickWidth = (getWidth() - (brickCols + 1) * 10) / brickCols;
+        int brickHeight = getHeight() / 30;
+
+        for (int row = 0; row < brickRows; row++) {
+            for (int col = 0; col < brickCols; col++) {
+                int x = 10 + col * (brickWidth + 10);
+                int y = 50 + row * (brickHeight + 10);
+                bricks.add(new Brick(x, y, brickWidth, brickHeight));
+            }
+        }
+    }
+
+    public GamePanel() {
+        setBackground(Color.BLACK);
+        setFocusable(true);
+
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-            	
-                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    System.exit(0);
-                }
-                
-                boolean validation = e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A || e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_D;
-                if (!started && validation) {
-                    started = true;
-                    // faltan cositass
-                }
-                
-                if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A) {
-                    leftPressed = true;
-                } else if (e.getKeyCode() == KeyEvent.VK_RIGHT  || e.getKeyCode() == KeyEvent.VK_D) {
-                    rightPressed = true;
-                }
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) System.exit(0);
+
+                boolean valid = e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A
+                        || e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_D;
+                if (!started && valid) started = true;
+
+                if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A) leftPressed = true;
+                if (e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_D) rightPressed = true;
             }
-            
+
             @Override
             public void keyReleased(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A) {
-                    leftPressed = false;
-                } else if (e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_D) {
-                    rightPressed = false;
-                }
+                if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A) leftPressed = false;
+                if (e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_D) rightPressed = false;
             }
         });
 
-        // Linea para que haya aprox. 60fps
-        new javax.swing.Timer(16, e -> {
-            if (leftPressed) paddleX -= 6;
-            if (rightPressed) paddleX += 6;
-           
-            // mantener paddle dentro de la pantalla
-            paddleX = Math.max(0, Math.min(getWidth() - paddleWidth, paddleX));
+        new javax.swing.Timer(16, e -> gameLoop()).start();
+    }
 
-            // mover pelota solamente si el juego comenzo
-            if (started) {
-                ballX += ballDX;
-                ballY += ballDY;
+    private void gameLoop() {
+        if (!initialized) return;
 
-                // rebote en paredes
-                if (ballX <= 0 || ballX + ballSize >= getWidth()) ballDX = -ballDX;
-                if (ballY <= 0) ballDY = -ballDY;
+        // mover paddle
+        if (leftPressed) paddleX -= paddleSpeed;
+        if (rightPressed) paddleX += paddleSpeed;
+        paddleX = Math.max(0, Math.min(getWidth() - paddleWidth, paddleX));
 
-                // rebote con la paleta
-                if (ballY + ballSize >= paddleY && ballX + ballSize >= paddleX && ballX <= paddleX + paddleWidth) {
+        if (started) {
+            // mover pelota
+            ballX += ballDX;
+            ballY += ballDY;
+
+            // rebote en paredes
+            if (ballX <= 0 || ballX + ballSize >= getWidth()) ballDX = -ballDX;
+            if (ballY <= 0) ballDY = -ballDY;
+
+            // rebote con paddle
+            if (ballY + ballSize >= paddleY &&
+                ballX + ballSize >= paddleX &&
+                ballX <= paddleX + paddleWidth) {
+                ballDY = -ballDY;
+                double hitPos = (ballX + ballSize / 2.0) - (paddleX + paddleWidth / 2.0);
+                ballDX = hitPos * 0.15; 
+            }
+
+            // colision con ladrillos
+            for (Brick brick : bricks) {
+                if (!brick.destroyed &&
+                    ballX + ballSize > brick.x &&
+                    ballX < brick.x + brick.width &&
+                    ballY + ballSize > brick.y &&
+                    ballY < brick.y + brick.height) {
+
+                    brick.destroyed = true;
                     ballDY = -ballDY;
-
-                    // ajusta la direccion segun donde pega en la paleta
-                    double hitPos = (ballX + ballSize/2.0) - (paddleX + paddleWidth/2.0);
-                    ballDX = hitPos * 0.1; // mientras mas a los lados, mas angulo
-                }
-                
-                for (Brick brick : bricks) {
-                    if (!brick.destroyed &&
-                        ballX + ballSize > brick.x &&
-                        ballX < brick.x + brick.width &&
-                        ballY + ballSize > brick.y &&
-                        ballY < brick.y + brick.height) {
-
-                        brick.destroyed = true;
-                        ballDY = -ballDY; // rebote
-                        score += 10;
-                        break; // solo un ladrillo por movimiento
-                    }
-                }
-                boolean allDestroyed = bricks.stream().allMatch(b -> b.destroyed);
-                if (allDestroyed) {
-                    generateLevel();
-                    // opcional: aumentar velocidad de la pelota
-                    if (ballDY > 0) ballDY += 0.5;
-                    else ballDY -= 0.5;
-                }
-
-                // si la pelota cae del borde inferior, reset
-                if (ballY > getHeight()) {
-                    started = false;
-                    ballX = paddleX + (paddleWidth - ballSize)/2;
-                    ballY = paddleY - ballSize - 2;
-                    ballDX = 4;
-                    ballDY = -4;
+                    score += 10;
+                    break;
                 }
             }
-            
-        
 
+            // si rompe todos los ladrillos
+            if (bricks.stream().allMatch(b -> b.destroyed)) {
+                generateLevel();
+                ballDX *= 1.1;
+                ballDY *= 1.1;
+            }
 
-            repaint();
-        }).start();
+            // si la pelota cae
+            if (ballY > getHeight()) {
+                started = false;
+                ballX = paddleX + (paddleWidth - ballSize) / 2;
+                ballY = paddleY - ballSize - 2;
+                ballDX = ballSpeed;
+                ballDY = -ballSpeed;
+            }
+        }
+
+        repaint();
     }
-	
-	
 
     @Override
     protected void paintComponent(Graphics g) {
-    	super.paintComponent(g);
+        super.paintComponent(g);
 
-    	// Panel, paddle y pelota
-        if (!initialized) {
-            int panelWidth = getWidth();
-            int panelHeight = getHeight();
-
-            paddleWidth = 100;
-            paddleHeight = 10;
-            paddleX = (panelWidth - paddleWidth) / 2;
-            paddleY = panelHeight - paddleHeight - 50;
-
-            ballSize = 10;
-            ballX = paddleX + (paddleWidth - ballSize) / 2;
-            ballY = paddleY - ballSize - 2;
-
-            initialized = true;
+        if (!initialized && getWidth() > 0 && getHeight() > 0) {
+            initGame();
         }
 
-        // Ladrillos
+        // paddle
         g.setColor(Color.WHITE);
         g.fillRect(paddleX, paddleY, paddleWidth, paddleHeight);
+
+        // pelota
         g.fillOval(ballX, ballY, ballSize, ballSize);
-        
+
+        // ladrillos
         g.setColor(Color.RED);
         for (Brick brick : bricks) {
             if (!brick.destroyed) {
@@ -196,13 +181,8 @@ class GamePanel extends JPanel {
             }
         }
 
-        // mostrar puntuacion
+        // puntaje
         g.setColor(Color.WHITE);
-        g.drawString("Puntuación: " + score, 10, 20);
-
+        g.drawString("Puntaje: " + score, 10, 20);
     }
-    
-  
-    
-
 }
