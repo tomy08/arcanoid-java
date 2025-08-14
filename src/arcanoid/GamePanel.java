@@ -105,19 +105,25 @@ class GamePanel extends JPanel {
 
     private void generateLevel() {
         bricks.clear();
-        int brickRows = 5;
-        int brickCols = Math.max(5, getWidth() / 100);
-        int brickWidth = (getWidth() - (brickCols + 1) * 10) / brickCols;
+        int brickRows = 6;
+        int brickCols = Math.min(7, getWidth() / 100);
+        int spacing = 10; // espacio entre ladrillos
+
+        int brickWidth = (getWidth() - (brickCols + 1) * spacing) / brickCols;
         int brickHeight = getHeight() / 30;
 
-        for (int row = 0; row < brickRows; row++) {
-            for (int col = 0; col < brickCols; col++) {
-                int x = 10 + col * (brickWidth + 10);
-                int y = 50 + row * (brickHeight + 10);
+        for (int row = 2; row < brickRows; row++) { // Se saltan las primeras dos filas
+            for (int col = 1; col < brickCols - 1; col++) { //  primer y ultima columna no se muestran
+                int x = spacing + col * (brickWidth + spacing);
+                int y = spacing + row * (brickHeight + spacing);
                 bricks.add(new Brick(x, y, brickWidth, brickHeight));
             }
         }
     }
+
+
+
+
 
     public GamePanel() {
         setBackground(Color.BLACK);
