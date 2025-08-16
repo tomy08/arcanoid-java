@@ -1,14 +1,24 @@
 package arcanoid;
 
-public class Brick  {
+public class Brick {
     int x, y, width, height;
-    boolean destroyed;
+    int hits; 
+    boolean destroyed = false;
 
-    public Brick(int x, int y, int width, int height) {
+    public Brick(int x, int y, int width, int height, int hits) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
-        this.destroyed = false;
+        this.hits = hits;
+    }
+
+    public void hit() {
+        hits--;
+        if (hits <= 0) destroyed = true;
+    }
+
+    public boolean isDestroyed() {
+        return destroyed;
     }
 }

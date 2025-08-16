@@ -24,6 +24,9 @@ class GamePanel extends JPanel {
     private int score = 0;
     private int record = 0;
     private int lives = 3;
+    private int level = 1;
+
+
     
     private File recordFile = new File("record.txt");
 
@@ -31,6 +34,7 @@ class GamePanel extends JPanel {
     private int paddleX, paddleY, paddleWidth, paddleHeight;
     private double paddleSpeed;
     private double ballSpeed;
+    private double maxBallSpeed; 
     private int ballX, ballY, ballSize;
     private double ballDX, ballDY;
 
@@ -97,9 +101,11 @@ class GamePanel extends JPanel {
 
         // velocidades proporcionales
         paddleSpeed = panelWidth / 80.0; 
-        ballSpeed = panelWidth / 150.0; 
+        ballSpeed = panelWidth / 150.0;
+        maxBallSpeed = ballSpeed * 1.5; 
         ballDX = ballSpeed;
         ballDY = -ballSpeed;
+
 
         generateLevel();
         initialized = true;
@@ -107,21 +113,27 @@ class GamePanel extends JPanel {
 
     private void generateLevel() {
         bricks.clear();
-        int brickRows = 6;
-        int brickCols = Math.min(7, getWidth() / 100);
-        int spacing = 10; // espacio entre ladrillos
-
+        int brickRows = 4 + level; // más filas según nivel
+        int brickCols = Math.min(10, getWidth() / 80); // más columnas
+        int spacing = 10;
         int brickWidth = (getWidth() - (brickCols + 1) * spacing) / brickCols;
         int brickHeight = getHeight() / 30;
 
-        for (int row = 2; row < brickRows; row++) { // Se saltan las primeras dos filas
-            for (int col = 1; col < brickCols - 1; col++) { //  primer y ultima columna no se muestran
+        for (int row = 2; row < brickRows; row++) {
+            for (int col = 1; col < brickCols - 1; col++) {
                 int x = spacing + col * (brickWidth + spacing);
                 int y = spacing + row * (brickHeight + spacing);
-                bricks.add(new Brick(x, y, brickWidth, brickHeight));
+
+                // ladrillos con resistencia mayor según nivel
+                int hits = 1;
+                if (level >= 2 && Math.random() < 0.3) hits = 2;
+                if (level >= 4 && Math.random() < 0.2) hits = 3;
+
+                bricks.add(new Brick(x, y, brickWidth, brickHeight, hits));
             }
         }
     }
+
 
 
 
@@ -199,17 +211,19 @@ class GamePanel extends JPanel {
                     ballY + ballSize > brick.y &&
                     ballY < brick.y + brick.height) {
 
-                    brick.destroyed = true;
-                    playSound("/arcanoid/sounds/ladrillo.wav");
-
-                    ballDY = -ballDY;
-                    score += 10;
+                	brick.hit();
+                	if (brick.isDestroyed()) {
+                	    score += 10;
+                	    playSound("/arcanoid/sounds/ladrillo.wav");
+                	}
+                	ballDY = -ballDY;
                     break;
                 }
             }
 
             // si rompe todos los ladrillos
             if (bricks.stream().allMatch(b -> b.destroyed)) {
+            	level++;
                 generateLevel();
                 ballDX *= 1.1;
                 ballDY *= 1.1;
@@ -298,27 +312,24 @@ class GamePanel extends JPanel {
         // ladrillos
         g.setColor(Color.RED);
         for (Brick brick : bricks) {
-            if (!brick.destroyed) {
-            	
-            	GradientPaint gradient = new GradientPaint(brick.x, brick.y, Color.RED.brighter(),
-            	                                           brick.x + brick.width, brick.y + brick.height, Color.RED.darker());
-            	g2.setPaint(gradient);
-            	g2.fillRect(brick.x, brick.y, brick.width, brick.height);
-            	
-            	g.setColor(Color.DARK_GRAY);
-            	g.drawRect(brick.x, brick.y, brick.width, brick.height);
+            if (!brick.isDestroyed()) {
+                Color color;
+                if (brick.hits == 1) color = Color.RED;
+                else if (brick.hits == 2) color = Color.ORANGE;
+                else color = Color.YELLOW;
 
-            	g.setColor(new Color(255, 255, 255, 80)); // blanco semitransparente
-            	g.fillRect(brick.x + 2, brick.y + 2, brick.width/4, brick.height/4);
-
-            	g.setColor(new Color(200, 0, 0, 50));
-            	for(int i = brick.x; i < brick.x + brick.width; i += 4){
-            	    g.drawLine(i, brick.y, i, brick.y + brick.height);
-            	}
-
-            	
+                GradientPaint gradient = new GradientPaint(
+                    brick.x, brick.y, color.brighter(),
+                    brick.x + brick.width, brick.y + brick.height,
+                    color.darker()
+                );
+                g2.setPaint(gradient);
+                g2.fillRect(brick.x, brick.y, brick.width, brick.height);
+                g.setColor(Color.DARK_GRAY);
+                g.drawRect(brick.x, brick.y, brick.width, brick.height);
             }
         }
+
 
         // puntaje, vidas, record
         g.setFont(new Font("Arial", Font.BOLD, 24)); // fuente grande y negrita
@@ -330,6 +341,7 @@ class GamePanel extends JPanel {
         String txtPuntaje = "Puntaje: " + score;
         String txtVidas   = "Vidas: " + lives;
         String txtRecord  = "Record: " + record;
+        String txtlevel = "Nivel: " + level;
 
         // dibuja texto blanco encima
         g.setColor(Color.WHITE);
@@ -339,6 +351,8 @@ class GamePanel extends JPanel {
         g.drawString(txtVidas, x, y);
         x += g.getFontMetrics().stringWidth(txtVidas) + 40;
         g.drawString(txtRecord, x, y);
+        x += g.getFontMetrics().stringWidth(txtRecord) + 40;
+        g.drawString(txtlevel, x, y);
         
     }
 }
